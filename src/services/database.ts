@@ -3,21 +3,21 @@ import { NFeData } from './nfeParser';
 
 export async function saveNFeToDatabase(data: NFeData) {
   try {
-    // 1. Insert or get Emitente
-    const emitenteId = await upsertEmpresa(data.emitente.cnpj, data.emitente.razaoSocial, 'EMITENTE');
+    // 1. Insere ou busca o Emitente (empresa que emitiu a nota)
+    const emitenteId = await upsertEmpresa(data.emitente, 'EMITENTE');
     
-    // 2. Insert or get Destinatario (if you want to track it)
-    await upsertEmpresa(data.destinatario.cnpj, data.destinatario.razaoSocial, 'CLIENTE');
+    // 2. Insere ou busca o Destinatário (cliente que recebeu a nota)
+    await upsertEmpresa(data.destinatario, 'CLIENTE');
 
     if (!emitenteId) throw new Error("Falha ao salvar emitente.");
 
-    // 3. Insert Products and Prices
+    // 3. Insere os Produtos e os Preços
     for (const prod of data.produtos) {
-      // Upsert Product
+      // Garante que o produto existe (não duplica o nome)
       const produtoId = await upsertProduto(prod.codigo, prod.nome);
       if (!produtoId) continue;
 
-      // Insert Price Record
+      // Insere o registro do histórico de preço e quantidade vinculando emitente e produto
       await insertPreco({
         produto_id: produtoId,
         empresa_id: emitenteId,
@@ -33,13 +33,13 @@ export async function saveNFeToDatabase(data: NFeData) {
   }
 }
 
-async function upsertEmpresa(cnpj: string, razaoSocial: string, tipo: string) {
-  if (!cnpj) return null;
+async function upsertEmpresa(empresa: NFeData['emitente'], tipo: string) {
+  if (!empresa.cnpj) return null;
   
   const { data: existing, error: findError } = await supabase
     .from('empresas')
     .select('id')
-    .eq('cnpj', cnpj)
+    .eq('cnpj', empresa.cnpj)
     .single();
     
   if (existing) return existing.id;
@@ -49,7 +49,20 @@ async function upsertEmpresa(cnpj: string, razaoSocial: string, tipo: string) {
 
   const { data: inserted, error: insertError } = await supabase
     .from('empresas')
-    .insert([{ cnpj, razao_social: razaoSocial, tipo }])
+    .insert([{ 
+      cnpj: empresa.cnpj, 
+      razao_social: empresa.razaoSocial, 
+      tipo,
+      inscricao_estadual: empresa.inscricaoEstadual,
+      logradouro: empresa.logradouro,
+      numero: empresa.numero,
+      complemento: empresa.complemento,
+      bairro: empresa.bairro,
+      municipio: empresa.municipio,
+      uf: empresa.uf,
+      cep: empresa.cep,
+      telefone: empresa.telefone
+    }])
     .select('id')
     .single();
 

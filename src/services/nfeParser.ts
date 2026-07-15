@@ -1,14 +1,22 @@
 import { XMLParser } from 'fast-xml-parser';
 
+export interface EmpresaData {
+  cnpj: string;
+  razaoSocial: string;
+  inscricaoEstadual?: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  municipio?: string;
+  uf?: string;
+  cep?: string;
+  telefone?: string;
+}
+
 export interface NFeData {
-  emitente: {
-    cnpj: string;
-    razaoSocial: string;
-  };
-  destinatario: {
-    cnpj: string;
-    razaoSocial: string;
-  };
+  emitente: EmpresaData;
+  destinatario: EmpresaData;
   produtos: Array<{
     codigo: string;
     nome: string;
@@ -27,7 +35,7 @@ export function parseNFe(xmlString: string): NFeData | null {
     
     const parsed = parser.parse(xmlString);
     
-    // NFe structure can vary, usually it's under nfeProc -> NFe -> infNFe
+    // A estrutura da NFe pode variar, mas geralmente está dentro de nfeProc -> NFe -> infNFe
     const infNFe = parsed?.nfeProc?.NFe?.infNFe || parsed?.NFe?.infNFe;
     
     if (!infNFe) {
@@ -35,17 +43,35 @@ export function parseNFe(xmlString: string): NFeData | null {
       return null;
     }
 
-    const emitente = {
+    const emitente: EmpresaData = {
       cnpj: infNFe.emit?.CNPJ ? String(infNFe.emit.CNPJ) : '',
       razaoSocial: infNFe.emit?.xNome || 'Desconhecido',
+      inscricaoEstadual: infNFe.emit?.IE ? String(infNFe.emit.IE) : undefined,
+      logradouro: infNFe.emit?.enderEmit?.xLgr,
+      numero: infNFe.emit?.enderEmit?.nro,
+      complemento: infNFe.emit?.enderEmit?.xCpl,
+      bairro: infNFe.emit?.enderEmit?.xBairro,
+      municipio: infNFe.emit?.enderEmit?.xMun,
+      uf: infNFe.emit?.enderEmit?.UF,
+      cep: infNFe.emit?.enderEmit?.CEP ? String(infNFe.emit.enderEmit.CEP) : undefined,
+      telefone: infNFe.emit?.enderEmit?.fone ? String(infNFe.emit.enderEmit.fone) : undefined,
     };
 
-    const destinatario = {
+    const destinatario: EmpresaData = {
       cnpj: infNFe.dest?.CNPJ ? String(infNFe.dest.CNPJ) : (infNFe.dest?.CPF ? String(infNFe.dest.CPF) : ''),
       razaoSocial: infNFe.dest?.xNome || 'Desconhecido',
+      inscricaoEstadual: infNFe.dest?.IE ? String(infNFe.dest.IE) : undefined,
+      logradouro: infNFe.dest?.enderDest?.xLgr,
+      numero: infNFe.dest?.enderDest?.nro,
+      complemento: infNFe.dest?.enderDest?.xCpl,
+      bairro: infNFe.dest?.enderDest?.xBairro,
+      municipio: infNFe.dest?.enderDest?.xMun,
+      uf: infNFe.dest?.enderDest?.UF,
+      cep: infNFe.dest?.enderDest?.CEP ? String(infNFe.dest.enderDest.CEP) : undefined,
+      telefone: infNFe.dest?.enderDest?.fone ? String(infNFe.dest.enderDest.fone) : undefined,
     };
 
-    // Det can be an array or a single object
+    // O campo 'det' pode vir como uma lista (array) ou um único objeto, dependendo de quantos produtos tem na nota
     const detArray = Array.isArray(infNFe.det) ? infNFe.det : [infNFe.det];
     
     const produtos = detArray.filter(Boolean).map((det: any) => ({
@@ -61,7 +87,7 @@ export function parseNFe(xmlString: string): NFeData | null {
       produtos
     };
   } catch (error) {
-    console.error("Error parsing XML:", error);
+    console.error("Erro ao analisar o XML:", error);
     return null;
   }
 }

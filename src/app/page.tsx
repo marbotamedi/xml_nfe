@@ -63,7 +63,7 @@ export default function Home() {
           <p className="text-gray-500">Importe suas notas fiscais em XML e salve no banco de dados automaticamente.</p>
         </header>
 
-        {/* Upload Zone */}
+        {/* Área de Upload (Drag & Drop) */}
         <div 
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
@@ -109,7 +109,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* Alerts */}
+        {/* Avisos e Alertas (Erros ou Sucesso) */}
         {error && (
           <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md flex items-center space-x-3 text-red-700">
             <AlertCircle />
@@ -118,13 +118,13 @@ export default function Home() {
         )}
 
         {dbStatus && (
-          <div className={\`p-4 rounded-md flex items-center space-x-3 \${dbStatus.success ? 'bg-green-50 border-l-4 border-green-500 text-green-700' : 'bg-yellow-50 border-l-4 border-yellow-500 text-yellow-700'}\`}>
+          <div className={`p-4 rounded-md flex items-center space-x-3 ${dbStatus.success ? 'bg-green-50 border-l-4 border-green-500 text-green-700' : 'bg-yellow-50 border-l-4 border-yellow-500 text-yellow-700'}`}>
             {dbStatus.success ? <CheckCircle /> : <AlertCircle />}
             <p>{dbStatus.message}</p>
           </div>
         )}
 
-        {/* Results Preview */}
+        {/* Prévia dos Resultados Lidos da Nota */}
         {result && (
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 animate-in fade-in slide-in-from-bottom-4 duration-500">
             
