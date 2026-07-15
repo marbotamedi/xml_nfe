@@ -32,12 +32,12 @@ export function parseNFe(xmlString: string): NFeData | null {
       parseAttributeValue: true,
       textNodeName: "_text",
     });
-    
+
     const parsed = parser.parse(xmlString);
-    
+
     // A estrutura da NFe pode variar, mas geralmente está dentro de nfeProc -> NFe -> infNFe
     const infNFe = parsed?.nfeProc?.NFe?.infNFe || parsed?.NFe?.infNFe;
-    
+
     if (!infNFe) {
       console.error("Invalid NFe XML structure");
       return null;
@@ -73,7 +73,7 @@ export function parseNFe(xmlString: string): NFeData | null {
 
     // O campo 'det' pode vir como uma lista (array) ou um único objeto, dependendo de quantos produtos tem na nota
     const detArray = Array.isArray(infNFe.det) ? infNFe.det : [infNFe.det];
-    
+
     const produtos = detArray.filter(Boolean).map((det: any) => ({
       codigo: det.prod?.cProd ? String(det.prod.cProd) : '',
       nome: det.prod?.xProd || 'Produto Desconhecido',
