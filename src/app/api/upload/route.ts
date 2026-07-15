@@ -13,14 +13,14 @@ export async function POST(req: NextRequest) {
 
     const xmlString = await file.text();
     
-    // Parse the XML
+    // Faz o parse do XML
     const parsedData = parseNFe(xmlString);
     
     if (!parsedData) {
       return NextResponse.json({ error: 'Falha ao processar o arquivo XML. Verifique se é uma NFe válida.' }, { status: 400 });
     }
 
-    // Attempt to save to database (this will only work if Supabase is properly configured)
+    // Tenta salvar no banco de dados (só vai funcionar se o Supabase estiver configurado certinho)
     const dbResult = await saveNFeToDatabase(parsedData);
     
     return NextResponse.json({ 
