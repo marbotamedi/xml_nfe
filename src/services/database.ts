@@ -11,7 +11,11 @@ export async function saveNFeToDatabase(data: NFeData) {
 
     if (!emitenteId) throw new Error("Falha ao salvar emitente.");
 
-    // 3. Insere os Produtos e os Preços
+    // 3. Insere os dados da Nota Fiscal
+    const nfeId = await insertNFeInfo(data.nfeInfo, emitenteId);
+    if (!nfeId) throw new Error("Falha ao salvar dados da NFe.");
+
+    // 4. Insere os Produtos e os Preços
     for (const prod of data.produtos) {
       // Garante que o produto existe (não duplica o nome)
       const produtoId = await upsertProduto(prod.codigo, prod.nome);
@@ -110,4 +114,39 @@ async function insertPreco(precoData: { produto_id: string, empresa_id: string, 
   if (error) {
     console.error('Error inserting preco:', error);
   }
+}
+
+async function insertNFeInfo(nfeInfo: NFeData['nfeInfo'], empresaId: string) {
+  // Verifica se a NFe já existe pela chave ou número
+  const { data: existing, error: findError } = await supabase
+    .from('nfe')
+    .select('id')
+    .eq('nfe', nfeInfo.numero)
+    .single();
+
+  if (existing) return existing.id;
+  if (findError && findError.code !== 'PGRST116') {
+    console.error('Error finding nfe:', findError);
+  }
+
+  const { data: inserted, error: insertError } = await supabase
+    .from('nfe')
+    .insert([{
+      nfe: nfeInfo.numero,
+      data_emissao: nfeInfo.dataEmissao,
+      data_saida: nfeInfo.dataSaida,
+      natureza: nfeInfo.natureza,
+      inf_prot: nfeInfo.protocolo,
+      chave: nfeInfo.chave,
+      empresa_id: empresaId
+    }])
+    .select('id')
+    .single();
+
+  if (insertError) {
+    console.error('Error inserting nfe:', insertError);
+    return null;
+  }
+
+  return inserted?.id;
 }

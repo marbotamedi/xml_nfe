@@ -14,7 +14,17 @@ export interface EmpresaData {
   telefone?: string;
 }
 
+export interface NFeInfo {
+  numero: number;
+  dataEmissao: string;
+  dataSaida: string;
+  natureza: string;
+  protocolo: string;
+  chave: string;
+}
+
 export interface NFeData {
+  nfeInfo: NFeInfo;
   emitente: EmpresaData;
   destinatario: EmpresaData;
   produtos: Array<{
@@ -29,7 +39,8 @@ export function parseNFe(xmlString: string): NFeData | null {
   try {
     const parser = new XMLParser({
       ignoreAttributes: false,
-      parseAttributeValue: true,
+      parseAttributeValue: false,
+      parseTagValue: false, // Evita que números muito grandes (como a chave NFe) virem notação científica
       textNodeName: "_text",
     });
 
@@ -42,6 +53,15 @@ export function parseNFe(xmlString: string): NFeData | null {
       console.error("Invalid NFe XML structure");
       return null;
     }
+
+    const nfeInfo = {
+      numero: parseInt(infNFe.ide?.nNF) || 0,
+      dataEmissao: infNFe.ide?.dhEmi || new Date().toISOString(),
+      dataSaida: infNFe.ide?.dhSaiEnt || infNFe.ide?.dhEmi || new Date().toISOString(),
+      natureza: infNFe.ide?.natOp || 'Desconhecida',
+      protocolo: String(parsed?.nfeProc?.protNFe?.infProt?.nProt || ''),
+      chave: String(parsed?.nfeProc?.protNFe?.infProt?.chNFe || infNFe['@_Id']?.replace('NFe', '') || '')
+    };
 
     const emitente: EmpresaData = {
       cnpj: infNFe.emit?.CNPJ ? String(infNFe.emit.CNPJ) : '',
@@ -82,6 +102,7 @@ export function parseNFe(xmlString: string): NFeData | null {
     }));
 
     return {
+      nfeInfo,
       emitente,
       destinatario,
       produtos
