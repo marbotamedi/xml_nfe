@@ -77,7 +77,7 @@ export default function Home() {
             message: data.error || data.dbStatus?.message || "Erro desconhecido ao salvar."
           });
         }
-      } catch (err: any) {
+      } catch (error) {
         newResults.push({
           fileName: file.name,
           success: false,
@@ -219,7 +219,7 @@ export default function Home() {
                       </div>
                     </div>
                     <div className="p-4 bg-gray-50">
-                      <p className="text-sm font-semibold text-gray-700 mb-2">{res.data.produtos.length} Produtos Encontrados</p>
+                      <p className="text-sm font-semibold text-gray-700 mb-2">{res.data.produtos?.length || 0} Produtos Encontrados</p>
                       <table className="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
                         <thead className="bg-gray-100">
                           <tr>
@@ -230,7 +230,7 @@ export default function Home() {
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {res.data.produtos.map((produto, index) => (
+                          {res.data.produtos?.map((produto, index) => (
                             <tr key={index} className="hover:bg-gray-50 transition-colors">
                               <td className="px-4 py-2 text-sm text-gray-900 truncate max-w-xs" title={produto.nome}>
                                 {produto.nome}
@@ -250,12 +250,12 @@ export default function Home() {
                         </tbody>
                         <tfoot className="bg-blue-50/50 border-t border-gray-200">
                           <tr>
-                            <td colSpan="3" className="px-4 py-4 text-right text-sm font-extrabold text-blue-900 uppercase tracking-wider">
+                            <td colSpan={3} className="px-4 py-4 text-right text-sm font-extrabold text-blue-900 uppercase tracking-wider">
                               Total da Nota:
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-                                res.data.produtos.reduce((acc, produto) => acc + (produto.quantidade * produto.valorUnitario), 0)
+                                res.data.produtos?.reduce((acc, produto) => acc + (produto.quantidade * produto.valorUnitario), 0) || 0
                               )}
                             </td>
                           </tr>
