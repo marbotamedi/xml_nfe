@@ -196,6 +196,21 @@ export default function Home() {
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Emitente</p>
                         <p className="font-semibold text-gray-900">{res.data.emitente.razaoSocial}</p>
                         <p className="text-xs text-gray-500">CNPJ: {res.data.emitente.cnpj}</p>
+                        <p className="text-xs">
+                          <span className="font-bold text-gray-900">NFE: </span>
+                          <span className="text-gray-500">{res.data.nfeInfo.numero}</span>
+                        </p>
+                        <p className="text-xs">
+                          <span className="font-bold text-gray-900">Emissão: </span>
+                          <span className="text-gray-500">
+                            {new Date(res.data.nfeInfo.dataEmissao).toLocaleDateString('pt-BR')}
+                          </span>
+                        </p>
+                        <p className="text-xs">
+                          <span className="font-bold text-gray-900">Operação: </span>
+                          <span className="text-gray-500">{res.data.nfeInfo.natureza}</span>
+                        </p>
+
                       </div>
                       <div className="p-4 space-y-1">
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Destinatário</p>
@@ -205,6 +220,47 @@ export default function Home() {
                     </div>
                     <div className="p-4 bg-gray-50">
                       <p className="text-sm font-semibold text-gray-700 mb-2">{res.data.produtos.length} Produtos Encontrados</p>
+                      <table className="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
+                        <thead className="bg-gray-100">
+                          <tr>
+                            <th scope="col" className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider rounded-tl-lg">Produto</th>
+                            <th scope="col" className="px-4 py-2 text-right text-xs font-bold text-gray-600 uppercase tracking-wider">Qtde</th>
+                            <th scope="col" className="px-4 py-2 text-right text-xs font-bold text-gray-600 uppercase tracking-wider rounded-tr-lg">Valor Unitário</th>
+                            <th scope="col" className="px-4 py-2 text-right text-xs font-bold text-gray-600 uppercase tracking-wider rounded-tr-lg">Valor Total</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {res.data.produtos.map((produto, index) => (
+                            <tr key={index} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-4 py-2 text-sm text-gray-900 truncate max-w-xs" title={produto.nome}>
+                                {produto.nome}
+                              </td>
+                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-600 text-right">
+                                {produto.quantidade}
+                              </td>
+                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-600 text-right">
+                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.valorUnitario)}
+                              </td>
+                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-600 text-right">
+                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.valorUnitario * produto.quantidade)}
+                              </td>
+                            </tr>
+
+                          ))}
+                        </tbody>
+                        <tfoot className="bg-blue-50/50 border-t border-gray-200">
+                          <tr>
+                            <td colSpan="3" className="px-4 py-4 text-right text-sm font-extrabold text-blue-900 uppercase tracking-wider">
+                              Total da Nota:
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
+                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+                                res.data.produtos.reduce((acc, produto) => acc + (produto.quantidade * produto.valorUnitario), 0)
+                              )}
+                            </td>
+                          </tr>
+                        </tfoot>
+                      </table>
                     </div>
                   </div>
                 )}
